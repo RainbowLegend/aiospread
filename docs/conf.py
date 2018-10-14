@@ -288,3 +288,9 @@ epub_copyright = u'%s, Anton Burnashev' % date.today().year
 
 # Allow duplicate toc entries.
 #epub_tocdup = True
+
+rst_prolog = """
+.. |coro| replace:: This function is a |corourl|_.
+.. |corourl| replace:: *coroutine*
+.. _corourl: https://docs.python.org/3/library/asyncio-task.html#coroutine
+"""
