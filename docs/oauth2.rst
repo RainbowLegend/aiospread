@@ -65,17 +65,22 @@ Depending on your system setup you may need to install PyOpenSSL:
 
 ::
 
-    import gspread
+    import aiospread
     from oauth2client.service_account import ServiceAccountCredentials
 
     scope = ['https://spreadsheets.google.com/feeds',
              'https://www.googleapis.com/auth/drive']
          
-    credentials = ServiceAccountCredentials.from_json_keyfile_name('gspread-april-2cd … ba4.json', scope)
+    credentials = ServiceAccountCredentials.from_json_keyfile_name('aiospread-april-2cd … ba4.json', scope)
 
-    gc = gspread.authorize(credentials)
+    async def opensht():
+        wks = await gc.open("Where is the money Lebowski?").sheet1
 
-    wks = gc.open("Where is the money Lebowski?").sheet1
+        await wks.update_acell('B2', "it's down there somewhere, let me take another look.")
+
+        cell_list = await wks.range('A1:B7')
+
+    asyncio.get_event_loop().run_until_complete(opensht())
 
 
 Troubleshooting
