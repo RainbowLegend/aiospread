@@ -1,0 +1,2 @@
+aiohttp
+oauth2client
