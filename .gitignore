@@ -8,6 +8,15 @@ dist/
 # virtualenv
 env/
 
+/.idea
+
+client-secret.json/
+test.py/
+
 # tox testrunner support
 .tox/
 gspread.egg-info/
+
+client-secret\.json
+
+test\.py

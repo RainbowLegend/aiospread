@@ -26,7 +26,7 @@ from .exceptions import (
 )
 
 
-def authorize(credentials, client_class=Client):
+async def authorize(credentials, client_class=Client):
     """Login to Google API using OAuth2 credentials.
     This is a shortcut function which
     instantiates :class:`gspread.client.Client`
@@ -35,5 +35,5 @@ def authorize(credentials, client_class=Client):
     :returns: :class:`gspread.client.Client` instance.
     """
     client = client_class(auth=credentials)
-    client.login()
+    await client.login()
     return client

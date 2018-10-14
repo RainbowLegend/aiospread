@@ -1,6 +1,12 @@
 # Google Spreadsheets Python API
+### This Sheets API was made by some random dude who wants to learn more about asyncio. 
+### BE CAREFUL WITH THIS AS IT'S EXPERIMENTAL.
 
-Manage your spreadsheets with _gspread_ in Python.
+__These docs may not even be correct so gl__
+
+Manage your spreadsheets with _aiospread_ in Python.
+
+_Fork of gspread_
 
 Features:
 
@@ -8,6 +14,7 @@ Features:
 * Open a spreadsheet by its **title** or **url**.
 * Extract range, entire row or column values.
 * Python 3 support.
+* Asyncio support
 
 ## Basic Usage
 
@@ -16,17 +23,19 @@ Features:
 2. Start using gspread:
 
 ```python
-import gspread
+import aiohttp
 
-gc = gspread.authorize(credentials)
+gc = aiohttp.authorize(credentials)
 
 # Open a worksheet from spreadsheet with one shot
-wks = gc.open("Where is the money Lebowski?").sheet1
+async def opensht():
+    wks = await gc.open("Where is the money Lebowski?").sheet1
 
-wks.update_acell('B2', "it's down there somewhere, let me take another look.")
+    await wks.update_acell('B2', "it's down there somewhere, let me take another look.")
 
-# Fetch a cell range
-cell_list = wks.range('A1:B7')
+    cell_list = await wks.range('A1:B7')
+
+asyncio.get_event_loop().run_until_complete(opensht())
 ```
 
 ## More Examples
@@ -34,15 +43,16 @@ cell_list = wks.range('A1:B7')
 ### Opening a Spreadsheet
 
 ```python
-# You can open a spreadsheet by its title as it appears in Google Docs
-sh = gc.open('My poor gym results') # <-- Look ma, no keys!
+async def opensheets():
+    # You can open a spreadsheet by its title as it appears in Google Docs
+    sh = await gc.open('My poor gym results') # <-- Look ma, no keys!
 
-# If you want to be specific, use a key (which can be extracted from
-# the spreadsheet's url)
-sht1 = gc.open_by_key('0BmgG6nO_6dprdS1MN3d3MkdPa142WFRrdnRRUWl1UFE')
+    # If you want to be specific, use a key (which can be extracted from
+    # the spreadsheet's url)
+    sht1 = await gc.open_by_key('0BmgG6nO_6dprdS1MN3d3MkdPa142WFRrdnRRUWl1UFE')
 
-# Or, if you feel really lazy to extract that key, paste the entire url
-sht2 = gc.open_by_url('https://docs.google.com/spreadsheet/ccc?key=0Bm...FE&hl')
+    # Or, if you feel really lazy to extract that key, paste the entire url
+    sht2 = await gc.open_by_url('https://docs.google.com/spreadsheet/ccc?key=0Bm...FE&hl')
 ```
 
 ### Creating a Spreadsheet

@@ -10,7 +10,7 @@ This module contains common spreadsheets' models.
 
 try:
     from urllib.parse import quote
-except:
+except ImportError:
     from urllib import quote
 
 from .exceptions import WorksheetNotFound, CellNotFound
@@ -32,6 +32,7 @@ from .urls import (
     SPREADSHEET_VALUES_APPEND_URL,
     SPREADSHEET_VALUES_CLEAR_URL
 )
+import aiohttp
 
 try:
     unicode
@@ -42,7 +43,7 @@ except NameError:
 class Spreadsheet(object):
     """The class that represents a spreadsheet."""
     def __init__(self, client, properties):
-        self.client = client
+        self.client = client or aiohttp.ClientSession
         self._properties = properties
 
     @property
@@ -61,18 +62,6 @@ class Spreadsheet(object):
             return self._properties['title']
 
     @property
-    def updated(self):
-        """.. deprecated:: 2.0
-        This feature is not supported in Sheets API v4.
-        """
-        import warnings
-        warnings.warn(
-            "Spreadsheet.updated() is deprecated, "
-            "this feature is not supported in Sheets API v4",
-            DeprecationWarning
-        )
-
-    @property
     def sheet1(self):
         """Shortcut property for getting the first worksheet."""
         return self.get_worksheet(0)
@@ -86,45 +75,57 @@ class Spreadsheet(object):
                                   repr(self.title),
                                   self.id)
 
-    def batch_update(self, body):
-        r = self.client.request(
-            'post',
-            SPREADSHEET_BATCH_UPDATE_URL % self.id,
-            json=body
-        )
+    async def batch_update(self, body):
+        async with aiohttp.ClientSession(headers={
+            'Authorization': f'Bearer {self.client.auth.access_token}'
+        }) as cs:
+            r = await cs.post(SPREADSHEET_BATCH_UPDATE_URL % self.id, json=body)
+            return await r.json()
 
-        return r.json()
-
-    def values_append(self, range, params, body):
+    async def values_append(self, range, params, body):
         url = SPREADSHEET_VALUES_APPEND_URL % (self.id, quote(range, safe=''))
-        r = self.client.request('post', url, params=params, json=body)
-        return r.json()
+        async with aiohttp.ClientSession(headers={
+            'Authorization': f'Bearer {self.client.auth.access_token}'
+        }) as cs:
+            r = await cs.post(url, params=params, json=body)
+            return await r.json()
 
-    def values_clear(self, range):
+    async def values_clear(self, range):
         url = SPREADSHEET_VALUES_CLEAR_URL % (self.id, quote(range, safe=''))
-        r = self.client.request('post', url)
-        return r.json()
+        async with aiohttp.ClientSession(headers={
+            'Authorization': f'Bearer {self.client.auth.access_token}'
+        }) as cs:
+            r = await cs.post(url)
+            return await r.json()
 
-    def values_get(self, range, params=None):
+    async def values_get(self, range, params=None):
         url = SPREADSHEET_VALUES_URL % (self.id, quote(range, safe=''))
-        r = self.client.request('get', url, params=params)
-        return r.json()
+        async with aiohttp.ClientSession(headers={
+            'Authorization': f'Bearer {self.client.auth.access_token}'
+        }) as cs:
+            r = await cs.get(url, params=params)
+            return await r.json()
 
-    def values_update(self, range, params=None, body=None):
+    async def values_update(self, range, params=None, body=None):
         url = SPREADSHEET_VALUES_URL % (self.id, quote(range, safe=''))
-        r = self.client.request('put', url, params=params, json=body)
-        return r.json()
+        async with aiohttp.ClientSession(headers={
+            'Authorization': f'Bearer {self.client.auth.access_token}'
+        }) as cs:
+            r = await cs.put(url, params=params, json=body)
+            return await r.json()
 
-    def fetch_sheet_metadata(self):
+    async def fetch_sheet_metadata(self):
         params = {'includeGridData': 'false'}
 
-        url = SPREADSHEET_URL % self.id
+        url = f'https://sheets.googleapis.com/v4/spreadsheets/{self.id}'
 
-        r = self.client.request('get', url, params=params)
+        async with aiohttp.ClientSession(headers={
+            'Authorization': f'Bearer {self.client.auth.access_token}'
+        }) as cs:
+            r = await cs.get(url, params=params)
+            return await r.json()
 
-        return r.json()
-
-    def get_worksheet(self, index):
+    async def get_worksheet(self, index):
         """Returns a worksheet with specified `index`.
 
         :param index: An index of a worksheet. Indexes start from zero.
@@ -138,7 +139,7 @@ class Spreadsheet(object):
         >>> worksheet = sht.get_worksheet(0)
 
         """
-        sheet_data = self.fetch_sheet_metadata()
+        sheet_data = await self.fetch_sheet_metadata()
 
         try:
             properties = sheet_data['sheets'][index]['properties']
@@ -146,15 +147,15 @@ class Spreadsheet(object):
         except (KeyError, IndexError):
             return None
 
-    def worksheets(self):
+    async def worksheets(self):
         """Returns a list of all :class:`worksheets <gsperad.models.Worksheet>`
         in a spreadsheet.
 
         """
-        sheet_data = self.fetch_sheet_metadata()
+        sheet_data = await self.fetch_sheet_metadata()
         return [Worksheet(self, x['properties']) for x in sheet_data['sheets']]
 
-    def worksheet(self, title):
+    async def worksheet(self, title):
         """Returns a worksheet with specified `title`.
 
         :param title: A title of a worksheet. If there're multiple
@@ -169,7 +170,7 @@ class Spreadsheet(object):
         >>> worksheet = sht.worksheet('Annual bonuses')
 
         """
-        sheet_data = self.fetch_sheet_metadata()
+        sheet_data = await self.fetch_sheet_metadata()
         try:
             item = finditem(
                 lambda x: x['properties']['title'] == title,
@@ -179,7 +180,7 @@ class Spreadsheet(object):
         except (StopIteration, KeyError):
             raise WorksheetNotFound(title)
 
-    def add_worksheet(self, title, rows, cols):
+    async def add_worksheet(self, title, rows, cols):
         """Adds a new worksheet to a spreadsheet.
 
         :param title: A title of a new worksheet.
@@ -203,7 +204,7 @@ class Spreadsheet(object):
             }]
         }
 
-        data = self.batch_update(body)
+        data = await self.batch_update(body)
 
         properties = data['replies'][0]['addSheet']['properties']
 
@@ -211,7 +212,7 @@ class Spreadsheet(object):
 
         return worksheet
 
-    def del_worksheet(self, worksheet):
+    async def del_worksheet(self, worksheet):
         """Deletes a worksheet from a spreadsheet.
 
         :param worksheet: The worksheet to be deleted.
@@ -223,9 +224,9 @@ class Spreadsheet(object):
             }]
         }
 
-        return self.batch_update(body)
+        return await self.batch_update(body)
 
-    def share(self, value, perm_type, role, notify=True, email_message=None):
+    async def share(self, value, perm_type, role, notify=True, email_message=None):
         """Share the spreadsheet with other accounts.
         :param value: user or group e-mail address, domain name
                       or None for 'default' type.
@@ -246,7 +247,7 @@ class Spreadsheet(object):
             sh.share('otto@example.com', perm_type='user', role='owner')
 
         """
-        self.client.insert_permission(
+        await self.client.insert_permission(
             self.id,
             value=value,
             perm_type=perm_type,
@@ -255,12 +256,12 @@ class Spreadsheet(object):
             email_message=email_message
         )
 
-    def list_permissions(self):
+    async def list_permissions(self):
         """Lists the spreadsheet's permissions.
         """
-        return self.client.list_permissions(self.id)
+        return await self.client.list_permissions(self.id)
 
-    def remove_permissions(self, value, role='any'):
+    async def remove_permissions(self, value, role='any'):
         """
         Example::
 
@@ -270,7 +271,7 @@ class Spreadsheet(object):
             # Remove all Otto's permissions for this spreadsheet
             sh.remove_permissions('otto@example.com')
         """
-        permission_list = self.client.list_permissions(self.id)
+        permission_list = await self.client.list_permissions(self.id)
 
         key = 'emailAddress' if '@' in value else 'domain'
 
@@ -356,7 +357,7 @@ class Worksheet(object):
             value_render_option=value_render_option
         )
 
-    def cell(self, row, col, value_render_option='FORMATTED_VALUE'):
+    async def cell(self, row, col, value_render_option='FORMATTED_VALUE'):
         """Returns an instance of a :class:`gspread.models.Cell` positioned
         in `row` and `col` column.
 
@@ -376,7 +377,7 @@ class Worksheet(object):
         """
 
         range_label = '%s!%s' % (self.title, rowcol_to_a1(row, col))
-        data = self.spreadsheet.values_get(
+        data = await self.spreadsheet.values_get(
             range_label,
             params={'valueRenderOption': value_render_option}
         )
@@ -436,12 +437,12 @@ class Worksheet(object):
             for j, value in enumerate(row)
         ]
 
-    def get_all_values(self):
+    async def get_all_values(self):
         """Returns a list of lists containing all cells' values as strings.
 
         """
 
-        data = self.spreadsheet.values_get(self.title)
+        data = await self.spreadsheet.values_get(self.title)
 
         try:
             return fill_gaps(data['values'])

@@ -9,7 +9,7 @@ Google API.
 
 """
 
-import requests
+import aiohttp
 
 from .utils import finditem
 from .utils import extract_id_from_url
@@ -39,9 +39,9 @@ class Client(object):
     """
     def __init__(self, auth, session=None):
         self.auth = auth
-        self.session = session or requests.Session()
+        self.session = session or aiohttp.ClientSession
 
-    def login(self):
+    async def login(self):
         """Authorize client."""
         if not self.auth.access_token or \
                 (hasattr(self.auth, 'access_token_expired') and self.auth.access_token_expired):
@@ -50,11 +50,12 @@ class Client(object):
             http = httplib2.Http()
             self.auth.refresh(http)
 
-        self.session.headers.update({
-            'Authorization': 'Bearer %s' % self.auth.access_token
-        })
+        async with aiohttp.ClientSession(headers={
+            'Authorization': f'Bearer {self.auth.access_token}'
+        }) as self.session:
+            self.session = self.session
 
-    def request(
+    async def request(
             self,
             method,
             endpoint,
@@ -64,21 +65,22 @@ class Client(object):
             files=None,
             headers=None):
 
-        response = getattr(self.session, method)(
-            endpoint,
-            json=json,
-            params=params,
-            data=data,
-            files=files,
-            headers=headers
-        )
+        async with self.session() as sess:
+            response = getattr(sess, method)(
+                endpoint,
+                json=json,
+                params=params,
+                data=data,
+                files=files,
+                headers=headers
+            )
 
-        if response.ok:
+        if response.reason == 'OK':
             return response
         else:
             raise APIError(response)
 
-    def list_spreadsheet_files(self):
+    async def list_spreadsheet_files(self):
         files = []
         page_token = ''
         url = "https://www.googleapis.com/drive/v3/files"
@@ -93,13 +95,14 @@ class Client(object):
             if page_token:
                 params['pageToken'] = page_token
 
-            res = self.request('get', url, params=params).json()
-            files.extend(res['files'])
-            page_token = res.get('nextPageToken', None)
+            async with self.session.get(url) as r:
+                res = await r.json()
+                files.extend(res['files'])
+                page_token = res.get('nextPageToken', None)
 
         return files
 
-    def open(self, title):
+    async def open(self, title):
         """Opens a spreadsheet.
 
         :param title: A title of a spreadsheet.
@@ -119,7 +122,7 @@ class Client(object):
         try:
             properties = finditem(
                 lambda x: x['name'] == title,
-                self.list_spreadsheet_files()
+                await self.list_spreadsheet_files()
             )
 
             # Drive uses different terminology
@@ -129,7 +132,7 @@ class Client(object):
         except StopIteration:
             raise SpreadsheetNotFound
 
-    def open_by_key(self, key):
+    async def open_by_key(self, key):
         """Opens a spreadsheet specified by `key`.
 
         :param key: A key of a spreadsheet as it appears in a URL in a browser.
@@ -142,7 +145,7 @@ class Client(object):
         """
         return Spreadsheet(self, {'id': key})
 
-    def open_by_url(self, url):
+    async def open_by_url(self, url):
         """Opens a spreadsheet specified by `url`.
 
         :param url: URL of a spreadsheet as it appears in a browser.
@@ -158,7 +161,7 @@ class Client(object):
         """
         return self.open_by_key(extract_id_from_url(url))
 
-    def openall(self, title=None):
+    async def openall(self, title=None):
         """Opens all available spreadsheets.
 
         :param title: (optional) If specified can be used to filter
@@ -167,14 +170,14 @@ class Client(object):
         :returns: a list of :class:`~gspread.models.Spreadsheet` instances.
 
         """
-        spreadsheet_files = self.list_spreadsheet_files()
+        spreadsheet_files = await self.list_spreadsheet_files()
 
         return [
             Spreadsheet(self, dict(title=x['name'], **x))
             for x in spreadsheet_files
         ]
 
-    def create(self, title):
+    async def create(self, title):
         """Creates a new spreadsheet.
 
         :param title: A title of a new spreadsheet.
@@ -201,15 +204,16 @@ class Client(object):
             'title': title,
             'mimeType': 'application/vnd.google-apps.spreadsheet'
         }
-        r = self.request(
-            'post',
-            DRIVE_FILES_API_V2_URL,
-            json=payload
-        )
-        spreadsheet_id = r.json()['id']
+
+        async with self.session as cs:
+            r = await cs.post(DRIVE_FILES_API_V2_URL, json=payload)
+
+        spreadsheet_id = await r.json()
+        spreadsheet_id = spreadsheet_id['id']
+
         return self.open_by_key(spreadsheet_id)
 
-    def del_spreadsheet(self, file_id):
+    async def del_spreadsheet(self, file_id):
         """Deletes a spreadsheet.
 
         :param file_id: a spreadsheet ID (aka file ID.)
@@ -219,39 +223,38 @@ class Client(object):
             file_id
         )
 
-        self.request('delete', url)
+        async with self.session() as cs:
+            await cs.delete(url)
 
-    def import_csv(self, file_id, data):
+    async def import_csv(self, file_id, data):
         """Imports data into the first page of the spreadsheet.
 
+        :param file_id: The file ID of the sheet
         :param data: A CSV string of data.
         """
         headers = {'Content-Type': 'text/csv'}
         url = '{0}/{1}'.format(DRIVE_FILES_UPLOAD_API_V2_URL, file_id)
 
-        self.request(
-            'put',
-            url,
-            data=data,
-            params={
+        async with self.session as cs:
+            await cs.put(url, data=data, params={
                 'uploadType': 'media',
                 'convert': True
-            },
-            headers=headers
-        )
+            }, headers=headers)
 
-    def list_permissions(self, file_id):
+    async def list_permissions(self, file_id):
         """Retrieve a list of permissions for a file.
 
         :param file_id: a spreadsheet ID (aka file ID.)
         """
         url = '{0}/{1}/permissions'.format(DRIVE_FILES_API_V2_URL, file_id)
 
-        r = self.request('get', url)
+        async with self.session as cs:
+            r = await cs.get(url)
+            res = await r.json()
 
-        return r.json()['items']
+        return res['items']
 
-    def insert_permission(
+    async def insert_permission(
         self,
         file_id,
         value,
@@ -309,14 +312,10 @@ class Client(object):
             'emailMessage': email_message
         }
 
-        self.request(
-            'post',
-            url,
-            json=payload,
-            params=params
-        )
+        async with self.session as cs:
+            await cs.post(url, json=payload, params=params)
 
-    def remove_permission(self, file_id, permission_id):
+    async def remove_permission(self, file_id, permission_id):
         """Deletes a permission from a file.
 
         :param file_id: a spreadsheet ID (aka file ID.)
@@ -328,4 +327,5 @@ class Client(object):
             permission_id
         )
 
-        self.request('delete', url)
+        async with self.session() as cs:
+            await cs.delete(url)

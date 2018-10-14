@@ -13,11 +13,6 @@ if sys.argv[-1] == 'publish':
     os.system('python setup.py sdist bdist_wheel')
     sys.exit()
 
-
-def read(filename):
-    return open(os.path.join(os.path.dirname(__file__), filename)).read()
-
-
 description = 'Google Spreadsheets Python API'
 
 long_description = """
@@ -28,25 +23,20 @@ License
 MIT
 """
 
-long_description = long_description.lstrip("\n").format(index=read('docs/index.txt'))
-
-version = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
-                    read('gspread/__init__.py'), re.MULTILINE).group(1)
-
 setup(
-    name='gspread',
-    packages=['gspread'],
+    name='aiospread',
+    packages=['aiospread'],
     description=description,
     long_description=long_description,
-    version=version,
+    version='1.0.0',
     author='Anton Burnashev',
     author_email='fuss.here@gmail.com',
-    url='https://github.com/burnash/gspread',
-    keywords=['spreadsheets', 'google-spreadsheets'],
-    install_requires=['requests>=2.2.1'],
+    url='https://github.com/RainbowLegend/aiospread',
+    keywords=['spreadsheets', 'google-spreadsheets', 'asyncio'],
+    install_requires=['aiohttp'],
     classifiers=[
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Development Status :: 3 - Alpha",
