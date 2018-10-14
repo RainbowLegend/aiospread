@@ -117,7 +117,7 @@ class Spreadsheet(object):
     async def fetch_sheet_metadata(self):
         params = {'includeGridData': 'false'}
 
-        url = f'https://sheets.googleapis.com/v4/spreadsheets/{self.id}'
+        url = 'https://sheets.googleapis.com/v4/spreadsheets/{}'.format(self.id)
 
         async with aiohttp.ClientSession(headers={
             'Authorization': 'Bearer {}'.format(self.client.auth.access_token)
@@ -849,8 +849,4 @@ class Cell(object):
         try:
             return float(self.value)
         except ValueError:
-<<<<<<< Updated upstream
             return None
-=======
-            return None
->>>>>>> Stashed changes
