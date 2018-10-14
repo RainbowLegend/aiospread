@@ -25,7 +25,9 @@ from .urls import (
 
 
 class Client(object):
-    """An instance of this class communicates with Google API.
+    """|coro|
+
+    An instance of this class communicates with Google API.
 
     :param auth: An OAuth2 credential object. Credential objects
                  are those created by the oauth2client library.
@@ -42,7 +44,9 @@ class Client(object):
         self.session = session or aiohttp.ClientSession
 
     async def login(self):
-        """Authorize client."""
+        """|coro|
+
+        Authorize client."""
         if not self.auth.access_token or \
                 (hasattr(self.auth, 'access_token_expired') and self.auth.access_token_expired):
             import httplib2
@@ -103,7 +107,9 @@ class Client(object):
         return files
 
     async def open(self, title):
-        """Opens a spreadsheet.
+        """|coro|
+
+        Opens a spreadsheet.
 
         :param title: A title of a spreadsheet.
 
@@ -115,8 +121,8 @@ class Client(object):
         :raises gspread.SpreadsheetNotFound: if no spreadsheet with
                                              specified `title` is found.
 
-        >>> c = gspread.authorize(credentials)
-        >>> c.open('My fancy spreadsheet')
+        >>> c = await gspread.authorize(credentials)
+        >>> await c.open('My fancy spreadsheet')
 
         """
         try:
@@ -133,14 +139,16 @@ class Client(object):
             raise SpreadsheetNotFound
 
     async def open_by_key(self, key):
-        """Opens a spreadsheet specified by `key`.
+        """|coro|
+
+        Opens a spreadsheet specified by `key`.
 
         :param key: A key of a spreadsheet as it appears in a URL in a browser.
 
         :returns: a :class:`~gspread.models.Spreadsheet` instance.
 
-        >>> c = gspread.authorize(credentials)
-        >>> c.open_by_key('0BmgG6nO_6dprdS1MN3d3MkdPa142WFRrdnRRUWl1UFE')
+        >>> c = await gspread.authorize(credentials)
+        >>> await c.open_by_key('0BmgG6nO_6dprdS1MN3d3MkdPa142WFRrdnRRUWl1UFE')
 
         """
         return Spreadsheet(self, {'id': key})
@@ -162,7 +170,9 @@ class Client(object):
         return self.open_by_key(extract_id_from_url(url))
 
     async def openall(self, title=None):
-        """Opens all available spreadsheets.
+        """|coro|
+
+        Opens all available spreadsheets.
 
         :param title: (optional) If specified can be used to filter
                       spreadsheets by title.
@@ -178,7 +188,9 @@ class Client(object):
         ]
 
     async def create(self, title):
-        """Creates a new spreadsheet.
+        """|coro|
+
+        Creates a new spreadsheet.
 
         :param title: A title of a new spreadsheet.
 
@@ -214,7 +226,9 @@ class Client(object):
         return self.open_by_key(spreadsheet_id)
 
     async def del_spreadsheet(self, file_id):
-        """Deletes a spreadsheet.
+        """|coro|
+
+        Deletes a spreadsheet.
 
         :param file_id: a spreadsheet ID (aka file ID.)
         """
@@ -227,7 +241,9 @@ class Client(object):
             await cs.delete(url)
 
     async def import_csv(self, file_id, data):
-        """Imports data into the first page of the spreadsheet.
+        """|coro|
+
+        Imports data into the first page of the spreadsheet.
 
         :param file_id: The file ID of the sheet
         :param data: A CSV string of data.
@@ -242,7 +258,9 @@ class Client(object):
             }, headers=headers)
 
     async def list_permissions(self, file_id):
-        """Retrieve a list of permissions for a file.
+        """|coro|
+
+        Retrieve a list of permissions for a file.
 
         :param file_id: a spreadsheet ID (aka file ID.)
         """
@@ -263,7 +281,9 @@ class Client(object):
         notify=True,
         email_message=None
     ):
-        """Creates a new permission for a file.
+        """|coro|
+
+        Creates a new permission for a file.
 
         :param file_id: a spreadsheet ID (aka file ID.)
         :param value: user or group e-mail address, domain name

@@ -126,7 +126,9 @@ class Spreadsheet(object):
             return await r.json()
 
     async def get_worksheet(self, index):
-        """Returns a worksheet with specified `index`.
+        """|coro|
+
+        Returns a worksheet with specified `index`.
 
         :param index: An index of a worksheet. Indexes start from zero.
 
@@ -135,8 +137,9 @@ class Spreadsheet(object):
 
         Example. To get first worksheet of a spreadsheet:
 
-        >>> sht = client.open('My fancy spreadsheet')
-        >>> worksheet = sht.get_worksheet(0)
+        >>> async def sheets():
+        ...     sht = await client.open('My fancy spreadsheet')
+        ...     worksheet = await sht.get_worksheet('Cool worksheet!')
 
         """
         sheet_data = await self.fetch_sheet_metadata()
@@ -148,7 +151,9 @@ class Spreadsheet(object):
             return None
 
     async def worksheets(self):
-        """Returns a list of all :class:`worksheets <gsperad.models.Worksheet>`
+        """|coro|
+
+        Returns a list of all :class:`worksheets <gsperad.models.Worksheet>`
         in a spreadsheet.
 
         """
@@ -156,7 +161,9 @@ class Spreadsheet(object):
         return [Worksheet(self, x['properties']) for x in sheet_data['sheets']]
 
     async def worksheet(self, title):
-        """Returns a worksheet with specified `title`.
+        """|coro|
+
+        Returns a worksheet with specified `title`.
 
         :param title: A title of a worksheet. If there're multiple
                       worksheets with the same title, first one will
@@ -166,8 +173,9 @@ class Spreadsheet(object):
 
         Example. Getting worksheet named 'Annual bonuses'
 
-        >>> sht = client.open('Sample one')
-        >>> worksheet = sht.worksheet('Annual bonuses')
+        >>> async def sheet():
+        ...     sht = await client.open('Sample one')
+        ...     worksheet = await sht.worksheet('Annual bonuses')
 
         """
         sheet_data = await self.fetch_sheet_metadata()
@@ -181,7 +189,9 @@ class Spreadsheet(object):
             raise WorksheetNotFound(title)
 
     async def add_worksheet(self, title, rows, cols):
-        """Adds a new worksheet to a spreadsheet.
+        """|coro|
+
+        Adds a new worksheet to a spreadsheet.
 
         :param title: A title of a new worksheet.
         :param rows: Number of rows.
@@ -213,7 +223,9 @@ class Spreadsheet(object):
         return worksheet
 
     async def del_worksheet(self, worksheet):
-        """Deletes a worksheet from a spreadsheet.
+        """|coro|
+
+        Deletes a worksheet from a spreadsheet.
 
         :param worksheet: The worksheet to be deleted.
 
@@ -227,7 +239,9 @@ class Spreadsheet(object):
         return await self.batch_update(body)
 
     async def share(self, value, perm_type, role, notify=True, email_message=None):
-        """Share the spreadsheet with other accounts.
+        """|coro|
+
+        Share the spreadsheet with other accounts.
         :param value: user or group e-mail address, domain name
                       or None for 'default' type.
         :param perm_type: the account type.
@@ -257,12 +271,15 @@ class Spreadsheet(object):
         )
 
     async def list_permissions(self):
-        """Lists the spreadsheet's permissions.
+        """|coro|
+
+        Lists the spreadsheet's permissions.
         """
         return await self.client.list_permissions(self.id)
 
     async def remove_permissions(self, value, role='any'):
-        """
+        """|coro|
+
         Example::
 
             # Remove Otto's write permission for this spreadsheet
@@ -335,7 +352,9 @@ class Worksheet(object):
         return self._properties['gridProperties']['columnCount']
 
     async def acell(self, label, value_render_option='FORMATTED_VALUE'):
-        """Returns an instance of a :class:`gspread.models.Cell`.
+        """|coro|
+
+        Returns an instance of a :class:`gspread.models.Cell`.
 
         :param label: String with cell label in common format, e.g. 'B1'.
                       Letter case is ignored.
@@ -347,7 +366,8 @@ class Worksheet(object):
 
         Example:
 
-        >>> worksheet.acell('A1')
+        >>> async def cell():
+        ...     await worksheet.acell('A1')
         <Cell R1C1 "I'm cell A1">
 
         """
@@ -358,7 +378,9 @@ class Worksheet(object):
         )
 
     async def cell(self, row, col, value_render_option='FORMATTED_VALUE'):
-        """Returns an instance of a :class:`gspread.models.Cell` positioned
+        """|coro|
+
+        Returns an instance of a :class:`gspread.models.Cell` positioned
         in `row` and `col` column.
 
         :param row: Integer row number.
@@ -371,7 +393,8 @@ class Worksheet(object):
 
         Example:
 
-        >>> worksheet.cell(1, 1)
+        >>> async def cell():
+        ...     await worksheet.cell(1, 1)
         <Cell R1C1 "I'm cell A1">
 
         """
@@ -391,7 +414,9 @@ class Worksheet(object):
 
     @cast_to_a1_notation
     def range(self, name):
-        """Returns a list of :class:`Cell` objects from a specified range.
+        """|coro|
+
+        Returns a list of :class:`Cell` objects from a specified range.
 
         :param name: A string with range value in A1 notation, e.g. 'A1:A5'.
 
@@ -404,13 +429,14 @@ class Worksheet(object):
         :param last_col: Integer row number
 
         Example::
-
-            >>> # Using A1 notation
-            >>> worksheet.range('A1:B7')
+            >>> async def range():
+            ...     # Using A1 notation
+            ...     worksheet.range('A1:B7')
             [<Cell R1C1 "42">, ...]
 
-            >>> # Same with numeric boundaries
-            >>> worksheet.range(1, 1, 7, 2)
+            >>> async def range2():
+            ...     # Same with numeric boundaries
+            ...     worksheet.range(1, 1, 7, 2)
             [<Cell R1C1 "42">, ...]
 
         """
@@ -438,7 +464,9 @@ class Worksheet(object):
         ]
 
     async def get_all_values(self):
-        """Returns a list of lists containing all cells' values as strings.
+        """|coro|
+
+        Returns a list of lists containing all cells' values as strings.
 
         """
 
@@ -450,7 +478,9 @@ class Worksheet(object):
             return []
 
     def get_all_records(self, empty2zero=False, head=1, default_blank=""):
-        """Returns a list of dictionaries, all of them having the contents
+        """|coro|
+
+        Returns a list of dictionaries, all of them having the contents
         of the spreadsheet with the head row as keys and each of these
         dictionaries holding the contents of subsequent rows of cells
         as values.
@@ -476,7 +506,9 @@ class Worksheet(object):
         return [dict(zip(keys, row)) for row in values]
 
     async def row_values(self, row, value_render_option='FORMATTED_VALUE'):
-        """Returns a list of all values in a `row`.
+        """|coro|
+
+        Returns a list of all values in a `row`.
 
         Empty cells in this list will be rendered as :const:`None`.
 
@@ -502,7 +534,9 @@ class Worksheet(object):
             return []
 
     async def col_values(self, col, value_render_option='FORMATTED_VALUE'):
-        """Returns a list of all values in column `col`.
+        """|coro|
+
+        Returns a list of all values in column `col`.
 
         Empty cells in this list will be rendered as :const:`None`.
 
@@ -532,7 +566,9 @@ class Worksheet(object):
             return []
 
     async def update_acell(self, label, value):
-        """Sets the new value to a cell.
+        """|coro|
+
+        Sets the new value to a cell.
 
         :param label: String with cell label in common format, e.g. 'B1'.
                       Letter case is ignored.
@@ -540,13 +576,15 @@ class Worksheet(object):
 
         Example::
 
-            worksheet.update_acell('A1', '42')
+            await worksheet.update_acell('A1', '42')
 
         """
         return await self.update_cell(*(a1_to_rowcol(label)), value=value)
 
     async def update_cell(self, row, col, value):
-        """Sets the new value to a cell.
+        """|coro|
+
+        Sets the new value to a cell.
 
         :param row: Row number.
         :param col: Column number.
@@ -554,7 +592,7 @@ class Worksheet(object):
 
         Example::
 
-            worksheet.update_cell(1, 1, '42')
+            await worksheet.update_cell(1, 1, '42')
 
         """
         range_label = '%s!%s' % (self.title, rowcol_to_a1(row, col))
@@ -572,7 +610,9 @@ class Worksheet(object):
         return data
 
     async def update_cells(self, cell_list, value_input_option='RAW'):
-        """Updates cells in batch.
+        """|coro|
+
+        Updates cells in batch.
 
         :param cell_list: List of a :class:`Cell` objects to update.
         :param value_input_option: Determines how input data should be
@@ -584,13 +624,13 @@ class Worksheet(object):
         Example::
 
             # Select a range
-            cell_list = worksheet.range('A1:C7')
+            cell_list = await worksheet.range('A1:C7')
 
             for cell in cell_list:
                 cell.value = 'O_o'
 
             # Update in batch
-            worksheet.update_cells(cell_list)
+            await worksheet.update_cells(cell_list)
 
         """
 
@@ -614,7 +654,9 @@ class Worksheet(object):
         return data
 
     async def resize(self, rows=None, cols=None):
-        """Resizes the worksheet.
+        """|coro|
+
+        Resizes the worksheet.
 
         :param rows: New rows number.
         :param cols: New columns number.
@@ -649,7 +691,9 @@ class Worksheet(object):
         return await self.spreadsheet.batch_update(body)
 
     async def update_title(self, title):
-        """Renames the worksheet.
+        """|coro|
+
+        Renames the worksheet.
 
         :param title: A new title.
 
@@ -670,7 +714,9 @@ class Worksheet(object):
         return await self.spreadsheet.batch_update(body)
 
     async def add_rows(self, rows):
-        """Adds rows to worksheet.
+        """|coro|
+
+        Adds rows to worksheet.
 
         :param rows: Rows number to add.
 
@@ -678,7 +724,9 @@ class Worksheet(object):
         await self.resize(rows=self.row_count + rows)
 
     async def add_cols(self, cols):
-        """Adds colums to worksheet.
+        """|coro|
+
+        Adds colums to worksheet.
 
         :param cols: Columns number to add.
 
@@ -686,7 +734,9 @@ class Worksheet(object):
         await self.resize(cols=self.col_count + cols)
 
     async def append_row(self, values, value_input_option='RAW'):
-        """Adds a row to the worksheet and populates it with values.
+        """|coro|
+
+        Adds a row to the worksheet and populates it with values.
         Widens the worksheet if there are more values than columns.
 
         :param values: List of values for the new row.
@@ -708,7 +758,9 @@ class Worksheet(object):
         index=1,
         value_input_option='RAW'
     ):
-        """Adds a row to the worksheet at the specified index
+        """|coro|
+
+        Adds a row to the worksheet at the specified index
         and populates it with values.
 
         Widens the worksheet if there are more values than columns.
@@ -752,7 +804,9 @@ class Worksheet(object):
         return data
 
     async def delete_row(self, index):
-        """"Deletes a row from the worksheet at the specified index.
+        """"|coro|
+
+        Deletes a row from the worksheet at the specified index.
 
         :param index: Index of a row for deletion.
         """
@@ -772,7 +826,9 @@ class Worksheet(object):
         return await self.spreadsheet.batch_update(body)
 
     async def clear(self):
-        """Clears all cells in the worksheet.
+        """|coro|
+
+        Clears all cells in the worksheet.
         """
         return await self.spreadsheet.values_clear(self.title)
 
@@ -798,7 +854,9 @@ class Worksheet(object):
         return func(match, cells)
 
     async def find(self, query):
-        """Finds first cell matching query.
+        """|coro|
+
+        Finds first cell matching query.
 
         :param query: A text string or compiled regular expression.
         """
@@ -808,7 +866,9 @@ class Worksheet(object):
             raise CellNotFound(query)
 
     async def findall(self, query):
-        """Finds all cells matching query.
+        """|coro|
+
+        Finds all cells matching query.
 
         :param query: A text string or compiled regular expression.
         """
