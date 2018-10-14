@@ -55,102 +55,90 @@ async def opensheets():
     sht2 = await gc.open_by_url('https://docs.google.com/spreadsheet/ccc?key=0Bm...FE&hl')
 ```
 
-### Creating a Spreadsheet
-
-```python
-sh = gc.create('A new spreadsheet')
-
-# But that new spreadsheet will be visible only to your script's account.
-# To be able to access newly created spreadsheet you *must* share it
-# with your email. Which brings us to…
-```
-
-### Sharing a Spreadsheet
-
-```python
-sh.share('otto@example.com', perm_type='user', role='writer')
-```
-
 ### Selecting a Worksheet
 
 ```python
-# Select worksheet by index. Worksheet indexes start from zero
-worksheet = sh.get_worksheet(0)
+async def selectors():
+    # Select worksheet by index. Worksheet indexes start from zero
+    worksheet = await sh.get_worksheet(0)
 
-# By title
-worksheet = sh.worksheet("January")
+    # By title
+    worksheet = await sh.worksheet("January")
 
-# Most common case: Sheet1
-worksheet = sh.sheet1
-
-# Get a list of all worksheets
-worksheet_list = sh.worksheets()
+    # Get a list of all worksheets
+    worksheet_list = await sh.worksheets()
 ```
 
 ### Creating a Worksheet
 
 ```python
-worksheet = sh.add_worksheet(title="A worksheet", rows="100", cols="20")
+async def creation():
+    worksheet = await sh.add_worksheet(title="A worksheet", rows="100", cols="20")
 ```
 
 ### Deleting a Worksheet
 
 ```python
-sh.del_worksheet(worksheet)
+async def deletion():
+    await sh.del_worksheet(worksheet)
 ```
 
 ### Getting a Cell Value
 
 ```python
-# With label
-val = worksheet.acell('B1').value
+async def values():
+    # With label
+    val = await worksheet.acell('B1').value
 
-# With coords
-val = worksheet.cell(1, 2).value
+    # With coords
+    val = await worksheet.cell(1, 2).value
 
-# To get a cell formula
-cell = worksheet.acell('B1') # or .cell(1, 2)
-cell.input_value
+    # To get a cell formula
+    cell = await worksheet.acell('B1') # or .cell(1, 2)
 ```
 
 ### Getting All Values From a Row or a Column
 
 ```python
-# Get all values from the first row
-values_list = worksheet.row_values(1)
+async def hashing():
+    # Get all values from the first row
+    values_list = await worksheet.row_values(1)
 
-# Get all values from the first column
-values_list = worksheet.col_values(1)
+    # Get all values from the first column
+    values_list = await worksheet.col_values(1)
 ```
 
 ### Getting All Values From a Worksheet as a List of Lists
 
 ```python
-list_of_lists = worksheet.get_all_values()
+async def alls():
+    list_of_lists = await worksheet.get_all_values()
 ```
 
 ### Finding a Cell
 
 ```python
 # Find a cell with exact string value
-cell = worksheet.find("Dough")
+async def finding():
+    cell = worksheet.find("Dough")
 
-print("Found something at R%sC%s" % (cell.row, cell.col))
+    print("Found something at R%sC%s" % (cell.row, cell.col))
 
-# Find a cell matching a regular expression
-amount_re = re.compile(r'(Big|Enormous) dough')
-cell = worksheet.find(amount_re)
+    # Find a cell matching a regular expression
+    amount_re = re.compile(r'(Big|Enormous) dough')
+    cell = worksheet.find(amount_re)
 ```
 
 ### Finding All Matched Cells
 
 ```python
-# Find all cells with string value
-cell_list = worksheet.findall("Rug store")
+async def matching():
+    # Find all cells with string value
+    cell_list = await worksheet.findall("Rug store")
 
-# Find all cells with regexp
-criteria_re = re.compile(r'(Small|Room-tiering) rug')
-cell_list = worksheet.findall(criteria_re)
+    # Find all cells with regexp
+    criteria_re = re.compile(r'(Small|Room-tiering) rug')
+    cell_list = await worksheet.findall(criteria_re)
 ```
 
 ### Cell Object
@@ -186,19 +174,19 @@ worksheet.update_cells(cell_list)
 
 ### Requirements
 
-Python 2.7+ or Python 3+
+Python 3.6+
 
-### From PyPI
+### Using PIP
 
 ```sh
-pip install gspread
+pip install git+https://RainbowLegend/aiospread.git
 ```
 
 ### From GitHub
 
 ```sh
-git clone https://github.com/burnash/gspread.git
-cd gspread
+git clone https://github.com/RainbowLegend/aiospread.git
+cd aiospread
 python setup.py install
 ```
 
@@ -218,7 +206,7 @@ The best way to get an answer to a question is to ask on [Stack Overflow with a 
 
 ### Report Issues
 
-Please report bugs and suggest features via the [GitHub Issues](https://github.com/burnash/gspread/issues).
+Please report bugs and suggest features via the [GitHub Issues](https://github.com/RainbowLegend/aiospread/issues).
 
 Before opening an issue, search the tracker for possible duplicates. If you find a duplicate, please add a comment saying that you encountered the problem as well.
 
