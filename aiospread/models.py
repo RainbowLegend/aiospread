@@ -334,7 +334,7 @@ class Worksheet(object):
         """Number of columns."""
         return self._properties['gridProperties']['columnCount']
 
-    def acell(self, label, value_render_option='FORMATTED_VALUE'):
+    async def acell(self, label, value_render_option='FORMATTED_VALUE'):
         """Returns an instance of a :class:`gspread.models.Cell`.
 
         :param label: String with cell label in common format, e.g. 'B1'.
@@ -352,7 +352,7 @@ class Worksheet(object):
 
         """
 
-        return self.cell(
+        return await self.cell(
             *(a1_to_rowcol(label)),
             value_render_option=value_render_option
         )
@@ -475,7 +475,7 @@ class Worksheet(object):
 
         return [dict(zip(keys, row)) for row in values]
 
-    def row_values(self, row, value_render_option='FORMATTED_VALUE'):
+    async def row_values(self, row, value_render_option='FORMATTED_VALUE'):
         """Returns a list of all values in a `row`.
 
         Empty cells in this list will be rendered as :const:`None`.
@@ -491,7 +491,7 @@ class Worksheet(object):
 
         range_label = '%s!A%s:%s' % (self.title, row, row)
 
-        data = self.spreadsheet.values_get(
+        data = await self.spreadsheet.values_get(
             range_label,
             params={'valueRenderOption': value_render_option}
         )
@@ -501,7 +501,7 @@ class Worksheet(object):
         except KeyError:
             return []
 
-    def col_values(self, col, value_render_option='FORMATTED_VALUE'):
+    async def col_values(self, col, value_render_option='FORMATTED_VALUE'):
         """Returns a list of all values in column `col`.
 
         Empty cells in this list will be rendered as :const:`None`.
@@ -518,7 +518,7 @@ class Worksheet(object):
         start_label = rowcol_to_a1(1, col)
         range_label = '%s!%s:%s' % (self.title, start_label, start_label[:-1])
 
-        data = self.spreadsheet.values_get(
+        data = await self.spreadsheet.values_get(
             range_label,
             params={
                 'valueRenderOption': value_render_option,
@@ -531,7 +531,7 @@ class Worksheet(object):
         except KeyError:
             return []
 
-    def update_acell(self, label, value):
+    async def update_acell(self, label, value):
         """Sets the new value to a cell.
 
         :param label: String with cell label in common format, e.g. 'B1'.
@@ -543,9 +543,9 @@ class Worksheet(object):
             worksheet.update_acell('A1', '42')
 
         """
-        return self.update_cell(*(a1_to_rowcol(label)), value=value)
+        return await self.update_cell(*(a1_to_rowcol(label)), value=value)
 
-    def update_cell(self, row, col, value):
+    async def update_cell(self, row, col, value):
         """Sets the new value to a cell.
 
         :param row: Row number.
@@ -559,7 +559,7 @@ class Worksheet(object):
         """
         range_label = '%s!%s' % (self.title, rowcol_to_a1(row, col))
 
-        data = self.spreadsheet.values_update(
+        data = await self.spreadsheet.values_update(
             range_label,
             params={
                 'valueInputOption': 'USER_ENTERED'
@@ -571,7 +571,7 @@ class Worksheet(object):
 
         return data
 
-    def update_cells(self, cell_list, value_input_option='RAW'):
+    async def update_cells(self, cell_list, value_input_option='RAW'):
         """Updates cells in batch.
 
         :param cell_list: List of a :class:`Cell` objects to update.
@@ -601,7 +601,7 @@ class Worksheet(object):
 
         range_label = '%s!%s:%s' % (self.title, start, end)
 
-        data = self.spreadsheet.values_update(
+        data = await self.spreadsheet.values_update(
             range_label,
             params={
                 'valueInputOption': value_input_option
@@ -613,7 +613,7 @@ class Worksheet(object):
 
         return data
 
-    def resize(self, rows=None, cols=None):
+    async def resize(self, rows=None, cols=None):
         """Resizes the worksheet.
 
         :param rows: New rows number.
@@ -646,9 +646,9 @@ class Worksheet(object):
             }]
         }
 
-        return self.spreadsheet.batch_update(body)
+        return await self.spreadsheet.batch_update(body)
 
-    def update_title(self, title):
+    async def update_title(self, title):
         """Renames the worksheet.
 
         :param title: A new title.
@@ -667,25 +667,25 @@ class Worksheet(object):
             }]
         }
 
-        return self.spreadsheet.batch_update(body)
+        return await self.spreadsheet.batch_update(body)
 
-    def add_rows(self, rows):
+    async def add_rows(self, rows):
         """Adds rows to worksheet.
 
         :param rows: Rows number to add.
 
         """
-        self.resize(rows=self.row_count + rows)
+        await self.resize(rows=self.row_count + rows)
 
-    def add_cols(self, cols):
+    async def add_cols(self, cols):
         """Adds colums to worksheet.
 
         :param cols: Columns number to add.
 
         """
-        self.resize(cols=self.col_count + cols)
+        await self.resize(cols=self.col_count + cols)
 
-    def append_row(self, values, value_input_option='RAW'):
+    async def append_row(self, values, value_input_option='RAW'):
         """Adds a row to the worksheet and populates it with values.
         Widens the worksheet if there are more values than columns.
 
@@ -700,9 +700,9 @@ class Worksheet(object):
             'values': [values]
         }
 
-        return self.spreadsheet.values_append(self.title, params, body)
+        return await self.spreadsheet.values_append(self.title, params, body)
 
-    def insert_row(
+    async def insert_row(
         self,
         values,
         index=1,
@@ -735,11 +735,11 @@ class Worksheet(object):
             }]
         }
 
-        self.spreadsheet.batch_update(body)
+        await self.spreadsheet.batch_update(body)
 
         range_label = '%s!%s' % (self.title, 'A%s' % index)
 
-        data = self.spreadsheet.values_update(
+        data = await self.spreadsheet.values_update(
             range_label,
             params={
                 'valueInputOption': value_input_option
@@ -751,7 +751,7 @@ class Worksheet(object):
 
         return data
 
-    def delete_row(self, index):
+    async def delete_row(self, index):
         """"Deletes a row from the worksheet at the specified index.
 
         :param index: Index of a row for deletion.
@@ -769,15 +769,15 @@ class Worksheet(object):
             }]
         }
 
-        return self.spreadsheet.batch_update(body)
+        return await self.spreadsheet.batch_update(body)
 
-    def clear(self):
+    async def clear(self):
         """Clears all cells in the worksheet.
         """
-        return self.spreadsheet.values_clear(self.title)
+        return await self.spreadsheet.values_clear(self.title)
 
-    def _finder(self, func, query):
-        data = self.spreadsheet.values_get(self.title)
+    async def _finder(self, func, query):
+        data = await self.spreadsheet.values_get(self.title)
 
         try:
             values = fill_gaps(data['values'])
@@ -797,33 +797,22 @@ class Worksheet(object):
 
         return func(match, cells)
 
-    def find(self, query):
+    async def find(self, query):
         """Finds first cell matching query.
 
         :param query: A text string or compiled regular expression.
         """
         try:
-            return self._finder(finditem, query)
+            return await self._finder(finditem, query)
         except StopIteration:
             raise CellNotFound(query)
 
-    def findall(self, query):
+    async def findall(self, query):
         """Finds all cells matching query.
 
         :param query: A text string or compiled regular expression.
         """
-        return list(self._finder(filter, query))
-
-    def export(self, format):
-        """.. deprecated:: 2.0
-        This feature is not supported in Sheets API v4.
-        """
-        import warnings
-        warnings.warn(
-            "Worksheet.export() is deprecated, "
-            "this feature is not supported in Sheets API v4",
-            DeprecationWarning
-        )
+        return list(await self._finder(filter, query))
 
 
 class Cell(object):
@@ -861,17 +850,3 @@ class Cell(object):
             return float(self.value)
         except ValueError:
             return None
-
-    @property
-    def input_value(self):
-        """.. deprecated:: 2.0
-        This feature is not supported in Sheets API v4.
-        """
-        import warnings
-        warnings.warn(
-            "Cell.input_value is deprecated, "
-            "this feature is not supported in Sheets API v4. "
-            "Please use `value_render_option` when you "
-            "Retrieve `Cell` objects (e.g. in `Worksheet.range()` method).",
-            DeprecationWarning
-        )
