@@ -51,7 +51,7 @@ class Client(object):
             self.auth.refresh(http)
 
         async with aiohttp.ClientSession(headers={
-            'Authorization': f'Bearer {self.auth.access_token}'
+            'Authorization': 'Bearer {}'.format(self.auth.access_token)
         }) as self.session:
             self.session = self.session
 

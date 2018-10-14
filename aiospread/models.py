@@ -77,7 +77,7 @@ class Spreadsheet(object):
 
     async def batch_update(self, body):
         async with aiohttp.ClientSession(headers={
-            'Authorization': f'Bearer {self.client.auth.access_token}'
+            'Authorization': 'Bearer {}'.format(self.client.auth.access_token)
         }) as cs:
             r = await cs.post(SPREADSHEET_BATCH_UPDATE_URL % self.id, json=body)
             return await r.json()
@@ -85,7 +85,7 @@ class Spreadsheet(object):
     async def values_append(self, range, params, body):
         url = SPREADSHEET_VALUES_APPEND_URL % (self.id, quote(range, safe=''))
         async with aiohttp.ClientSession(headers={
-            'Authorization': f'Bearer {self.client.auth.access_token}'
+            'Authorization': 'Bearer {}'.format(self.client.auth.access_token)
         }) as cs:
             r = await cs.post(url, params=params, json=body)
             return await r.json()
@@ -93,7 +93,7 @@ class Spreadsheet(object):
     async def values_clear(self, range):
         url = SPREADSHEET_VALUES_CLEAR_URL % (self.id, quote(range, safe=''))
         async with aiohttp.ClientSession(headers={
-            'Authorization': f'Bearer {self.client.auth.access_token}'
+            'Authorization': 'Bearer {}'.format(self.client.auth.access_token)
         }) as cs:
             r = await cs.post(url)
             return await r.json()
@@ -101,7 +101,7 @@ class Spreadsheet(object):
     async def values_get(self, range, params=None):
         url = SPREADSHEET_VALUES_URL % (self.id, quote(range, safe=''))
         async with aiohttp.ClientSession(headers={
-            'Authorization': f'Bearer {self.client.auth.access_token}'
+            'Authorization': 'Bearer {}'.format(self.client.auth.access_token)
         }) as cs:
             r = await cs.get(url, params=params)
             return await r.json()
@@ -109,7 +109,7 @@ class Spreadsheet(object):
     async def values_update(self, range, params=None, body=None):
         url = SPREADSHEET_VALUES_URL % (self.id, quote(range, safe=''))
         async with aiohttp.ClientSession(headers={
-            'Authorization': f'Bearer {self.client.auth.access_token}'
+            'Authorization': 'Bearer {}'.format(self.client.auth.access_token)
         }) as cs:
             r = await cs.put(url, params=params, json=body)
             return await r.json()
@@ -120,7 +120,7 @@ class Spreadsheet(object):
         url = f'https://sheets.googleapis.com/v4/spreadsheets/{self.id}'
 
         async with aiohttp.ClientSession(headers={
-            'Authorization': f'Bearer {self.client.auth.access_token}'
+            'Authorization': 'Bearer {}'.format(self.client.auth.access_token)
         }) as cs:
             r = await cs.get(url, params=params)
             return await r.json()
@@ -849,4 +849,8 @@ class Cell(object):
         try:
             return float(self.value)
         except ValueError:
+<<<<<<< Updated upstream
             return None
+=======
+            return None
+>>>>>>> Stashed changes
