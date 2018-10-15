@@ -255,10 +255,10 @@ class Spreadsheet(object):
         Example::
 
             # Give Otto a write permission on this spreadsheet
-            sh.share('otto@example.com', perm_type='user', role='writer')
+            await sh.share('otto@example.com', perm_type='user', role='writer')
 
             # Transfer ownership to Otto
-            sh.share('otto@example.com', perm_type='user', role='owner')
+            await sh.share('otto@example.com', perm_type='user', role='owner')
 
         """
         await self.client.insert_permission(
@@ -283,10 +283,10 @@ class Spreadsheet(object):
         Example::
 
             # Remove Otto's write permission for this spreadsheet
-            sh.remove_permissions('otto@example.com', role='writer')
+            await sh.remove_permissions('otto@example.com', role='writer')
 
             # Remove all Otto's permissions for this spreadsheet
-            sh.remove_permissions('otto@example.com')
+            await sh.remove_permissions('otto@example.com')
         """
         permission_list = await self.client.list_permissions(self.id)
 
