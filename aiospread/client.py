@@ -25,9 +25,7 @@ from .urls import (
 
 
 class Client(object):
-    """|coro|
-
-    An instance of this class communicates with Google API.
+    """An instance of this class communicates with Google API.
 
     :param auth: An OAuth2 credential object. Credential objects
                  are those created by the oauth2client library.
