@@ -152,7 +152,9 @@ class Client(object):
         return Spreadsheet(self, {'id': key})
 
     async def open_by_url(self, url):
-        """Opens a spreadsheet specified by `url`.
+        """|coro|
+        
+        Opens a spreadsheet specified by `url`.
 
         :param url: URL of a spreadsheet as it appears in a browser.
 
@@ -161,11 +163,11 @@ class Client(object):
         :raises gspread.SpreadsheetNotFound: if no spreadsheet with
                                              specified `url` is found.
 
-        >>> c = gspread.authorize(credentials)
-        >>> c.open_by_url('https://docs.google.com/spreadsheet/ccc?key=0Bm...FE&hl')
+        >>> c = await gspread.authorize(credentials)
+        >>> await c.open_by_url('https://docs.google.com/spreadsheet/ccc?key=0Bm...FE&hl')
 
         """
-        return self.open_by_key(extract_id_from_url(url))
+        return await self.open_by_key(extract_id_from_url(url))
 
     async def openall(self, title=None):
         """|coro|
