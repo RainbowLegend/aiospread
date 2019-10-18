@@ -155,10 +155,10 @@ column_number = cell.col
 ### Updating Cells
 
 ```python
-worksheet.update_acell('B1', 'Bingo!')
+await worksheet.update_acell('B1', 'Bingo!')
 
 # Or
-worksheet.update_cell(1, 2, 'Bingo!')
+await worksheet.update_cell(1, 2, 'Bingo!')
 
 # Select a range
 cell_list = worksheet.range('A1:C7')
@@ -167,7 +167,7 @@ for cell in cell_list:
     cell.value = 'O_o'
 
 # Update in batch
-worksheet.update_cells(cell_list)
+await worksheet.update_cells(cell_list)
 ```
 
 ## Installation
